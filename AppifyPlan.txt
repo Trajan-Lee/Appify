@@ -1,0 +1,14 @@
+Appify is a project management web application designed to streamline collaboration, task management, and project tracking for teams and individuals. It provides users with the ability to create tasks, assign responsibilities, set deadlines, track progress using Gantt charts, and receive real-time notifications. The platform ensures role-based access control for managers and subordinates while offering an intuitive dashboard for an overview of team and personal tasks.
+
+Requirement ID	Requirement Description	Type	Status
+FR-01	Users must be able to register and log in	Functional	In Progress
+FR-02	Managers can create and assign tasks	Functional	In Progress
+FR-03	Tasks must have due dates and priorities	Functional	Planned
+TR-01	Database must be MongoDB	Technical	Completed
+TR-02	Frontend must be developed using React.js	Technical	In Progress
+TR-03	Backend must be developed using Node.js and express.js	Technical	In Progress
+
+
+
+Narrative
+Appify follows a client-server architecture, with the frontend built using React.js and the backend powered by Node.js and Express.js. The database layer consists of MongoDB for efficient storage and retrieval of project-related data. The application includes a role-based access system to differentiate between managers and subordinates.

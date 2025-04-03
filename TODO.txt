@@ -1,0 +1,17 @@
+Colours:
+Light Blue: #4fc1e9
+pale blue: #7cd1ef
+deeper blue: #22b1e3
+light gray: #e6e6e6
+dark gray: #111111
+
+
+TASKS
+    Sort Dashboard tasks by due database
+        filter completed tasks
+    Task-page
+        add filter options 
+            'combo-box' for status
+            sort by priority (both ways)
+            {manager}'combo box' for subordinates
+            

@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile.frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - appify_network
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "5000:5000"
+    networks:
+      - appify_network
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/appify
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    networks:
+      - appify_network
+    volumes:
+      - mongo-data:/data/db
+
+networks:
+  appify_network:
+    driver: bridge
+
+volumes:
+  mongo-data:
