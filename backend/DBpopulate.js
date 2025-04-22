@@ -5,8 +5,10 @@ const Project = require('./models/Project');
 const Task = require('./models/Task');
 const Subtask = require('./models/Subtask');
 
+const MONGO_URI = process.env.MONGO_URI;
+
 // Connect to MongoDB
-mongoose.connect('mongodb://localhost:27017/appify', {
+mongoose.connect(MONGO_URI, {
 });
 
 const createSampleData = async () => {

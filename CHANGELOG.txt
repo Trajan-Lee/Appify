@@ -1,0 +1,1 @@
+Add protected route to always redirect to the login-page if the token is non-existent or expired

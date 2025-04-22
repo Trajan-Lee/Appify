@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import dbUtils from '../utils/dbUtils';
+import taskUtils from '../utils/taskUtils';
+import userUtils from '../utils/userUtils';
 import authUtils from '../utils/authUtils';
 
 const TaskListPage = () => {
@@ -15,8 +16,8 @@ const TaskListPage = () => {
 
         // Fetch tasks based on the user's role
         const tasks = role === 'manager'
-          ? await dbUtils.fetchAllTasks() // Fetch all tasks for managers
-          : await dbUtils.fetchTasks(); // Fetch assigned tasks for regular users
+          ? await taskUtils.fetchAllTasks() // Fetch all tasks for managers
+          : await taskUtils.fetchTasks(); // Fetch assigned tasks for regular users
 
         setTasks(tasks);
       } catch (error) {
@@ -25,7 +26,7 @@ const TaskListPage = () => {
       }
 
       try {
-        const username = await dbUtils.fetchUsername();
+        const username = await userUtils.fetchUsername();
         setUsername(username);
       } catch (error) {
         console.error('Error fetching username:', error);
@@ -73,7 +74,7 @@ const TaskListPage = () => {
               return (
                 <tr key={task._id}>
                   <td style={{ border: '1px solid #ccc', padding: '10px' }}>
-                    <Link to={`/tasks/${task._id}`} style={{ textDecoration: 'none', color: 'blue' }}>
+                    <Link to={`/tasks/${task._id}`}>
                       {task.title}
                     </Link>
                   </td>

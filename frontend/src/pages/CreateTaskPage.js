@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import Select from 'react-select';
 import authUtils from '../utils/authUtils';
-import dbUtils from '../utils/dbUtils';
+import projectUtils from '../utils/projectUtils';
+import userUtils from '../utils/userUtils';
+import taskUtils from '../utils/taskUtils';
 
 const CreateTaskPage = () => {
   const [title, setTitle] = useState('');
@@ -23,19 +25,19 @@ const CreateTaskPage = () => {
     const fetchUserData = async () => {
       try {
         const role = await authUtils.getUserRole();
-        const userId = await dbUtils.fetchUserId();
+        const userId = await userUtils.fetchUserId();
         setUserRole(role);
         setCurrentUserId(userId);
 
         // If the user is a manager, fetch subordinates
         if (role === 'manager') {
-          const subordinates = await dbUtils.fetchSubordinates();
+          const subordinates = await userUtils.fetchSubordinates();
           setSubordinates(subordinates);
           console.log('Subordinates:', subordinates); // Debug: Log the fetched subordinates
         }
 
         // Fetch projects where the user is a member
-        const userProjects = await dbUtils.fetchUserProjects();
+        const userProjects = await projectUtils.fetchUserProjects();
         setProjects(userProjects);
       } catch (err) {
         console.error('Error fetching user data:', err);
@@ -63,10 +65,10 @@ const CreateTaskPage = () => {
         priority,
         visibility,
         assignedTo: visibility === 'Personal' ? [currentUserId] : assignedTo,
-        project: selectedProject, // Include the selected project
+        project: selectedProject,
       };
 
-      await dbUtils.createTask(taskData);
+      await taskUtils.createTask(taskData);
       setSuccess('Task created successfully!');
       setTitle('');
       setDescription('');
@@ -183,9 +185,15 @@ const CreateTaskPage = () => {
                 value: subordinate._id,
                 label: subordinate.username,
               }))}
-            styles={{
-              container: (base) => ({ ...base, marginBottom: '10px' }),
-            }}
+              styles={{
+                container: (base) => ({ ...base, marginBottom: '10px' }),
+                control: (base) => ({ ...base, color: 'black' }),
+                option: (base, state) => ({
+                  ...base,
+                  color: 'black',
+                  backgroundColor: state.isFocused ? '#f0f0f0' : 'white',
+                }),
+              }}
           />
         </div>
       )}

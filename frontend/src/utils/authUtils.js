@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
 const api_url = process.env.REACT_APP_API_URL;
 
 
@@ -31,7 +32,19 @@ const authUtils = {
   // Function to check if the user is authenticated
   isAuthenticated: () => {
     const token = localStorage.getItem('token');
-    return !!token;
+    if (!token) return false;
+
+    try {
+      const { exp } = jwtDecode(token); // Decode the token to get the expiration time
+      if (Date.now() >= exp * 1000) {
+        authUtils.handleLogout(); // Logout if the token is expired
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error('Invalid token:', error);
+      return false;
+    }
   },
 };
 

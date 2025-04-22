@@ -1,168 +1,211 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { useNavigate, Link } from 'react-router-dom';
-import authUtils from '../utils/authUtils'; 
-import dbUtils from '../utils/dbUtils'; // Import userUtils to fetch username
-//import './DashboardPage.css'; // Optional: Add custom styles here
+import { Link, useNavigate } from 'react-router-dom';
+import authUtils from '../utils/authUtils';
+import projectUtils from '../utils/projectUtils';
+import userUtils from '../utils/userUtils';
+import taskUtils from '../utils/taskUtils';
 
-const api_url = process.env.REACT_APP_API_URL;
+import './styles/uniformStyles.css'; // Import the uniform styles
+//import { Chart } from 'react-google-charts';
 
 const DashboardPage = () => {
   const [tasks, setTasks] = useState([]);
   const [username, setUsername] = useState('');
+  const [error, setError] = useState(null);
+  const [isManager, setIsManager] = useState(false);
   const navigate = useNavigate();
-  // Fetch tasks assigned to the user
+
   useEffect(() => {
     const fetchData = async () => {
-      
       try {
-        const tasks = await dbUtils.fetchTasks();
+        const role = await authUtils.getUserRole(); // Fetch the user's role
+        setIsManager(role === 'manager'); // Set manager status
+
+        // Fetch tasks based on the user's role
+        const tasks = role === 'manager'
+          ? await taskUtils.fetchAllTasks() // Fetch all tasks for managers
+          : await taskUtils.fetchTasks(); // Fetch assigned tasks for regular users
+
         setTasks(tasks);
       } catch (error) {
-        console.error('Error fetching tasks:', error); // Debug: Log the error
+        console.error('Error fetching tasks:', error);
+        setError('Failed to load tasks.');
       }
-      
+
       try {
-        const username = await dbUtils.fetchUsername();
+        const username = await userUtils.fetchUsername();
         setUsername(username);
       } catch (error) {
-        console.error('Error fetching username:', error); // Debug: Log the error
+        console.error('Error fetching username:', error);
       }
     };
-  
+
     fetchData();
   }, []);
 
-  // Navigate to task details page
-  const handleTaskClick = (taskId) => {
-    navigate(`/tasks/${taskId}`);
-  };
 
   // Navigate to create task page
   const handleCreateTask = () => {
     navigate('/tasks/create');
   };
 
+  /*
+  const generateGanttData = () => {
+    const data = [
+      { type: "string", label: "Task ID" },
+      { type: "string", label: "Task Name" },
+      { type: "string", label: "Resource" },
+      { type: "date", label: "Start Date" },
+      { type: "date", label: "End Date" },
+      { type: "number", label: "Duration" },
+      { type: "number", label: "Percent Complete" },
+      { type: "string", label: "Dependencies" },
+    ];
+  
+    tasks.forEach((task) => {
+      const percentComplete = Math.min(
+        (Math.max(0, new Date() - task.startDate) / (task.dueDate - task.startDate)) * 100,
+        100
+      );
+  
+      data.push([
+        task._id,          
+        task.title,        
+        '',                
+        task.startDate,         
+        task.dueDate,           
+        null,              
+        percentComplete,   
+        null,              
+      ]);
+    });
+  
+    return data;
+  };
+  
+  const ganttOptions = {
+    height: 400,
+    gantt: {
+      trackHeight: 30,
+    },
+  };
+  */
+
+  if (error) return <p>{error}</p>;
+
   return (
-    <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div className="uniform-container"> {/* Apply uniform container class */}
+      <div className="uniform-header"> {/* Apply uniform header class */}
         <h1>Dashboard</h1>
-        <p style={{ fontSize: '16px', color: '#555' }}>Logged in as <strong>{username}</strong></p>
+        <p>Logged in as <strong>{username}</strong></p>
       </div>
-      <button onClick={authUtils.handleLogout} style={{ padding: '10px', backgroundColor: 'red', color: 'white' }}>
-        Logout
-      </button>
+
       {/* Task List */}
-      <div style={{ marginBottom: '20px' }}>
-        <Link to="/tasklist" style={{ textDecoration: 'none', color: 'inherit' }}>
+      <div className="uniform-section">
+        <Link to="/tasklist">
           <h2>Assigned Tasks</h2>
         </Link>
-        <div style={{ maxHeight: '200px', overflowY: 'scroll', border: '1px solid #ccc', padding: '10px' }}>
-          {tasks.length > 0 ? (
-          tasks.map((task) => {
-              // Format the dueDate
-              const formattedDueDate = new Intl.DateTimeFormat('en-US', {
-                month: 'short', 
-                day: '2-digit', 
-                year: 'numeric',
-              }).format(new Date(task.dueDate)); // Convert dueDate to a Date object
+        <table className="uniform-table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Start Date</th>
+              <th>End Date</th>
+              <th>Priority</th>
+              <th>Assigned To</th>
+              <th>Visibility</th>
+            </tr>
+          </thead>
+          <tbody>
+            {tasks.length > 0 ? (
+              tasks.map((task) => {
+                // Format dates
+                const formattedStartDate = new Intl.DateTimeFormat('en-US', {
+                  month: 'short',
+                  day: '2-digit',
+                  year: 'numeric',
+                }).format(new Date(task.startDate));
 
-              return (
-                <div
-                  key={task._id}
-                  style={{
-                    padding: '10px',
-                    borderBottom: '1px solid #ddd',
-                    cursor: 'pointer',
-                  }}
-                  onClick={() => handleTaskClick(task._id)}
-                >
-                  <strong>{task.title} --- {formattedDueDate}</strong>
-                  <p>{task.description}</p>
-                  <p>Status: {task.status}</p>
-                </div>
-              );
-            })
-          ) : (
-            <p>No tasks assigned.</p>
-          )}
-        </div>
-      </div>
+                const formattedEndDate = new Intl.DateTimeFormat('en-US', {
+                  month: 'short',
+                  day: '2-digit',
+                  year: 'numeric',
+                }).format(new Date(task.dueDate));
 
-      {/* Create Task Button */}
-      <button
-        onClick={handleCreateTask}
-        style={{
-          padding: '10px 20px',
-          backgroundColor: '#4caf50',
-          color: 'white',
-          border: 'none',
-          borderRadius: '5px',
-          cursor: 'pointer',
-        }}
-      >
-        Create New Task
-      </button>
-
-      {/* Gantt Chart */}
-      <div style={{ marginTop: '40px' }}>
-        <h2>Gantt Chart</h2>
-        <div style={{ border: '1px solid #ccc', padding: '10px' }}>
-          {tasks.length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {tasks.map((task) => {
-                // Calculate task duration and position
-                const startDate = new Date(task.startDate);
-                const dueDate = new Date(task.dueDate);
-                const today = new Date();
-                const totalDays = Math.ceil((dueDate - startDate) / (1000 * 60 * 60 * 24)); // Total task duration in days
-                const daysFromStart = Math.max(0, Math.ceil((today - startDate) / (1000 * 60 * 60 * 24))); // Days since start
-
-                // Calculate progress bar width and offset
-                const progressWidth = Math.min((daysFromStart / totalDays) * 100, 100); // Percentage of task completed
-                const offset = Math.max(0, (startDate - today) / (1000 * 60 * 60 * 24)) * 10; // Offset for tasks starting in the future
+                // Get assigned usernames
+                const assignedUsernames = task.assignedTo.map((user) => user.username).join(', ');
 
                 return (
-                  <div
-                    key={task._id}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      cursor: 'pointer',
-                    }}
-                    onClick={() => handleTaskClick(task._id)}
-                  >
-                    <span style={{ width: '150px' }}>{task.title}</span>
-                    <div
-                      style={{
-                        flex: 1,
-                        height: '20px',
-                        backgroundColor: '#f0f0f0',
-                        borderRadius: '5px',
-                        overflow: 'hidden',
-                        marginLeft: '10px',
-                        position: 'relative',
-                      }}
-                    >
-                      <div
-                        style={{
-                          position: 'absolute',
-                          left: `${offset}px`,
-                          width: `${progressWidth}%`,
-                          height: '100%',
-                          backgroundColor: '#4caf50',
-                        }}
-                      ></div>
-                    </div>
-                  </div>
+                  <tr key={task._id}>
+                    <td>
+                      <Link to={`/tasks/${task._id}`}>
+                        {task.title}
+                      </Link>
+                    </td>
+                    <td>{formattedStartDate}</td>
+                    <td>{formattedEndDate}</td>
+                    <td>{task.priority}</td>
+                    <td>{assignedUsernames}</td>
+                    <td>
+                      {task.visibility === 'Public' ? 'Public' : 'Personal'}
+                    </td>
+                  </tr>
                 );
-              })}
-            </div>
+              })
+            ) : (
+              <tr>
+                <td colSpan="6">No tasks available.</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="button-container">
+        <button onClick={handleCreateTask} className="uniform-create-button">
+          Create New Task
+        </button>
+        {isManager && (
+          <>
+            <button
+              onClick={() => navigate('/projects')}
+              className="uniform-create-button"
+            >
+              Manage Projects
+            </button>
+            <button
+              onClick={() => navigate('/users')}
+              className="uniform-create-button"
+            >
+              Manage Users
+            </button>
+          </>
+        )}
+      </div>
+
+      <div className="logout-container">
+        <button onClick={authUtils.handleLogout} className="uniform-logout-button">
+          Logout
+        </button>
+      </div>
+
+      {/* Gantt Chart 
+      <div className="uniform-section">
+        <h2>Gantt Chart</h2>
+        <div className="uniform-gantt-container">
+          {tasks.length > 0 ? (
+            <Chart
+              chartType="Gantt"
+              width="100%"
+              data={generateGanttData()}
+              options={ganttOptions}
+            />
           ) : (
             <p>No tasks to display in the Gantt chart.</p>
           )}
         </div>
       </div>
+      */}
     </div>
   );
 };

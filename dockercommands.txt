@@ -1,0 +1,10 @@
+docker build -t clintbeastwood/appify-frontend:latest -f frontend/Dockerfile.frontend .
+docker build -t clintbeastwood/appify-backend:latest -f Dockerfile.backend .
+docker build -t clintbeastwood/appify-db-init:latest -f Dockerfile.db-init .
+
+docker push clintbeastwood/appify-frontend:latest
+docker push clintbeastwood/appify-backend:latest
+docker push clintbeastwood/appify-db-init:latest
+
+docker-compose pull
+docker-compose up

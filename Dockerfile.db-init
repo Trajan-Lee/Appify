@@ -1,0 +1,21 @@
+# Use the base Node.js image
+FROM node:16
+
+# Set the working directory
+WORKDIR /app
+
+# Copy package.json and package-lock.json to install dependencies
+COPY backend/package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy the DBpopulate.js script and the backend models
+COPY backend/DBpopulate.js .
+COPY backend/models ./models
+
+# Set the environment variable for MongoDB URI
+ENV MONGO_URI=mongodb://mongo:27017/appify
+
+# Run the DBpopulate.js script
+CMD ["node", "DBpopulate.js"]
